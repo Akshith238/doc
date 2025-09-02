@@ -2,64 +2,48 @@ import cv2
 import numpy as np
 import matplotlib.pyplot as plt
 import math
-
 def to_grayscale(path):
     img = cv2.imread(path, cv2.IMREAD_GRAYSCALE)
     return img
-
 def pad_images(img1, img2):
     h1, w1 = img1.shape
     h2, w2 = img2.shape
     H, W = max(h1, h2), max(w1, w2)
-
     padded1 = np.zeros((H, W), dtype=np.uint8)
     padded2 = np.zeros((H, W), dtype=np.uint8)
-
     padded1[:h1, :w1] = img1
     padded2[:h2, :w2] = img2
-
     return padded1, padded2
-
 def img_and(img1, img2): 
     print("AND Operation: Keeps pixels where BOTH images have high values (bitwise AND)")
     return np.bitwise_and(img1, img2)
-
 def img_or(img1, img2): 
     print("OR Operation: Keeps pixels where EITHER image has high values (bitwise OR)")
     return np.bitwise_or(img1, img2)
-
 def img_xor(img1, img2): 
     print("XOR Operation: Highlights differences between images (bitwise XOR)")
     return np.bitwise_xor(img1, img2)
-
 def img_add(img1, img2): 
     print("ADD Operation: Brightens image by adding pixel values (increases brightness)")
     return np.clip(img1 + img2, 0, 255).astype(np.uint8)
-
 def img_sub(img1, img2): 
     print("SUBTRACT Operation: Darkens image by subtracting pixel values (decreases brightness)")
     return np.clip(img1 - img2, 0, 255).astype(np.uint8)
-
 def img_mul(img1, img2): 
     print("MULTIPLY Operation: Creates darker image, highlights common bright areas")
     return np.clip((img1 * img2) / 255, 0, 255).astype(np.uint8)
-
 def img_div(img1, img2):
     print("DIVIDE Operation: Creates brighter image, highlights areas where img1 > img2")
     img2 = np.where(img2 == 0, 1, img2) 
     return np.clip((img1 / img2) * 255, 0, 255).astype(np.uint8)
-
 def linear_transform(img, a=1.0, b=0):
-    print(f"Linear Transform: s = {a}*r + {b} (adjusts contrast and brightness)")
     result = np.zeros_like(img, dtype=float)
     h, w = img.shape
     for i in range(h):
         for j in range(w):
             result[i, j] = a * img[i, j] + b
     return np.clip(result, 0, 255).astype(np.uint8)
-
 def log_transform(img, c=1.0):
-    print(f"Log Transform: s = {c} * log(1 + r) (expands dark regions, compresses bright)")
     result = np.zeros_like(img, dtype=float)
     h, w = img.shape
     for i in range(h):
@@ -68,9 +52,7 @@ def log_transform(img, c=1.0):
             log_val = math.log(1.0 + pixel_val)
             result[i, j] = c * log_val
     return np.clip(result, 0, 255).astype(np.uint8)
-
 def power_law_transform(img, c=1.0, gamma=1.0):
-    print(f"Power Law Transform: s = {c} * (r^{gamma}) (gamma<1 brightens, gamma>1 darkens)")
     result = np.zeros_like(img, dtype=float)
     h, w = img.shape
     for i in range(h):
@@ -78,18 +60,14 @@ def power_law_transform(img, c=1.0, gamma=1.0):
             normalized = img[i, j] / 255.0
             result[i, j] = c * (normalized ** gamma) * 255
     return np.clip(result, 0, 255).astype(np.uint8)
-
 def negate_transform(img):
-    print("Negate Transform: s = 255 - r (creates negative/inverted image)")
     result = np.zeros_like(img)
     h, w = img.shape
     for i in range(h):
         for j in range(w):
             result[i, j] = 255 - img[i, j]
     return result
-
 def binary_threshold(img, thresh=127):
-    print(f"Binary Threshold: Pixels > {thresh} become 255, others become 0")
     result = np.zeros_like(img)
     h, w = img.shape
     for i in range(h):
@@ -99,49 +77,34 @@ def binary_threshold(img, thresh=127):
             else:
                 result[i, j] = 0
     return result
-
 def otsu_threshold(img):
-    print("Otsu's Threshold: Automatically finds optimal threshold to separate foreground/background")
-    h, w = img.shape
-    
+    h, w = img.shape 
     hist = np.zeros(256, dtype=int)
     for i in range(h):
         for j in range(w):
             hist[img[i, j]] += 1
-    
     total_pixels = h * w
     best_thresh = 0
-    max_variance = 0
-    
+    max_variance = 0   
     for t in range(256):
         w0 = sum(hist[:t+1])
         if w0 == 0:
-            continue
-        
+            continue  
         w1 = total_pixels - w0
         if w1 == 0:
-            break
-            
+            break  
         sum0 = sum(i * hist[i] for i in range(t+1))
         sum1 = sum(i * hist[i] for i in range(t+1, 256))
-        
         mu0 = sum0 / w0 if w0 > 0 else 0
         mu1 = sum1 / w1 if w1 > 0 else 0
-        
         variance = w0 * w1 * (mu0 - mu1) ** 2
-        
         if variance > max_variance:
             max_variance = variance
             best_thresh = t
-    
-    print(f"Otsu's optimal threshold: {best_thresh}")
     return binary_threshold(img, best_thresh), best_thresh
-
 def multiple_threshold(img, thresholds=[85, 170]):
-    print(f"Multiple Threshold: Creates {len(thresholds)+1} intensity levels using thresholds {thresholds}")
     result = np.zeros_like(img)
     h, w = img.shape
-    
     for i in range(h):
         for j in range(w):
             pixel = img[i, j]
@@ -152,13 +115,10 @@ def multiple_threshold(img, thresholds=[85, 170]):
             result[i, j] = (level * 255) // len(thresholds)
     
     return result
-
 def zero_order_hold_zoom(img, zoom_factor):
-    print(f"Zero-Order Hold Zoom: Enlarges image by {zoom_factor}x using nearest neighbor (blocky)")
     h, w = img.shape
     new_h, new_w = int(h * zoom_factor), int(w * zoom_factor)
     result = np.zeros((new_h, new_w), dtype=np.uint8)
-    
     for i in range(new_h):
         for j in range(new_w):
             orig_i = int(i / zoom_factor)
@@ -167,96 +127,67 @@ def zero_order_hold_zoom(img, zoom_factor):
                 result[i, j] = img[orig_i, orig_j]
     
     return result
-
 def first_order_hold_zoom(img, zoom_factor):
-    print(f"First-Order Hold Zoom: Enlarges image by {zoom_factor}x using bilinear interpolation (smooth)")
     h, w = img.shape
     new_h, new_w = int(h * zoom_factor), int(w * zoom_factor)
     result = np.zeros((new_h, new_w), dtype=np.uint8)
-    
     for i in range(new_h):
         for j in range(new_w):
             orig_i = i / zoom_factor
             orig_j = j / zoom_factor
-            
             i1, j1 = int(orig_i), int(orig_j)
             i2, j2 = min(i1 + 1, h - 1), min(j1 + 1, w - 1)
-            
             di, dj = orig_i - i1, orig_j - j1
-            
             if i1 < h and j1 < w:
                 top_left = img[i1, j1]
                 top_right = img[i1, j2]
                 bottom_left = img[i2, j1]
                 bottom_right = img[i2, j2]
-                
                 top = top_left * (1 - dj) + top_right * dj
                 bottom = bottom_left * (1 - dj) + bottom_right * dj
                 result[i, j] = int(top * (1 - di) + bottom * di)
-    
     return result
-
 def crop_image(img, x1, y1, x2, y2):
-    print(f"Crop: Extracts rectangular region from ({x1},{y1}) to ({x2},{y2})")
     return img[y1:y2, x1:x2]
-
 def translate_image(img, tx, ty):
-    print(f"Translation: Moves image by ({tx},{ty}) pixels")
     h, w = img.shape
-    result = np.zeros_like(img)
-    
+    result = np.zeros_like(img)    
     for i in range(h):
         for j in range(w):
             new_i, new_j = i + ty, j + tx
             if 0 <= new_i < h and 0 <= new_j < w:
-                result[new_i, new_j] = img[i, j]
-    
+                result[new_i, new_j] = img[i, j]   
     return result
 
 def rotate_image(img, angle_degrees):
-    print(f"Rotation: Rotates image by {angle_degrees} degrees around center")
     h, w = img.shape
     result = np.zeros_like(img)
     angle = math.radians(angle_degrees)
     cos_a, sin_a = math.cos(angle), math.sin(angle)
-    
     cx, cy = w // 2, h // 2
-    
     for i in range(h):
         for j in range(w):
-            x, y = j - cx, i - cy
-            
+            x, y = j - cx, i - cy            
             new_x = x * cos_a - y * sin_a
-            new_y = x * sin_a + y * cos_a
-            
+            new_y = x * sin_a + y * cos_a            
             orig_j = int(new_x + cx)
-            orig_i = int(new_y + cy)
-            
+            orig_i = int(new_y + cy)           
             if 0 <= orig_i < h and 0 <= orig_j < w:
-                result[i, j] = img[orig_i, orig_j]
-    
+                result[i, j] = img[orig_i, orig_j]   
     return result
-
 def flip_horizontal(img):
-    print("Horizontal Flip: Mirrors image left-to-right")
     h, w = img.shape
     result = np.zeros_like(img)
-    
     for i in range(h):
         for j in range(w):
             result[i, j] = img[i, w - 1 - j]
-    
     return result
-
 def flip_vertical(img):
-    print("Vertical Flip: Mirrors image top-to-bottom")
     h, w = img.shape
     result = np.zeros_like(img)
-    
     for i in range(h):
         for j in range(w):
             result[i, j] = img[h - 1 - i, j]
-    
     return result
 
 def connected_component_labeling(binary_img):
@@ -268,10 +199,8 @@ def connected_component_labeling(binary_img):
         for j in range(w):
             if binary_img[i, j] == 0:  
                 continue
-
             top = labels[i-1, j] if i > 0 else 0
             left = labels[i, j-1] if j > 0 else 0
-
             if top == 0 and left == 0:         
                 labels[i, j] = label
                 eq_table[label] = label
@@ -284,36 +213,29 @@ def connected_component_labeling(binary_img):
                 labels[i, j] = min(top, left)
                 if top != left:
                     eq_table[max(top, left)] = min(top, left)
-
     for i in range(h):
         for j in range(w):
             if labels[i, j] > 0:
                 while labels[i, j] != eq_table[labels[i, j]]:
                     labels[i, j] = eq_table[labels[i, j]]
     return labels, eq_table
-
 def roberts_edge_detection(img, thresh=50):
-    print(f"Roberts Edge Detection: Uses 2x2 cross-gradient masks to detect edges (threshold={thresh})")
     h, w = img.shape
     Gx_mask = np.array([[1, 0],
                         [0, -1]])
     Gy_mask = np.array([[0, 1],
                         [-1, 0]])
-    
     Gx = np.zeros_like(img, dtype=int)
     Gy = np.zeros_like(img, dtype=int)
-    
     for i in range(h-1):
         for j in range(w-1):
             region = img[i:i+2, j:j+2]
             Gx[i, j] = np.sum(region * Gx_mask)
             Gy[i, j] = np.sum(region * Gy_mask)
-    
     G = np.zeros_like(img, dtype=float)
     for i in range(h):
         for j in range(w):
             G[i, j] = math.sqrt(Gx[i, j]**2 + Gy[i, j]**2)
-    
     edges = np.zeros_like(img, dtype=np.uint8)
     for i in range(h):
         for j in range(w):
@@ -321,52 +243,38 @@ def roberts_edge_detection(img, thresh=50):
                 edges[i, j] = 255
             else:
                 edges[i, j] = 0
-    
     return edges, Gx, Gy, G.astype(np.uint8)
-
 def region_growing(img, seed_x, seed_y, threshold=10):
     print(f"Region Growing: Grows region from seed ({seed_x},{seed_y}) with threshold {threshold}")
     print("Connects pixels with similar intensity values to the growing region")
-    
     h, w = img.shape
     visited = np.zeros((h, w), dtype=bool)
     result = np.zeros((h, w), dtype=np.uint8)
-    
     if seed_y >= h or seed_x >= w or seed_y < 0 or seed_x < 0:
         print("Invalid seed point!")
         return result
-    
     stack = [(seed_y, seed_x)]
     seed_intensity = img[seed_y, seed_x]
-    
     neighbors = [(-1,-1), (-1,0), (-1,1), (0,-1), (0,1), (1,-1), (1,0), (1,1)]
-    
     while stack:
         y, x = stack.pop()
-        
         if visited[y, x]:
-            continue
-            
+            continue   
         if abs(int(img[y, x]) - int(seed_intensity)) <= threshold:
             visited[y, x] = True
             result[y, x] = 255 
-            
             for dy, dx in neighbors:
                 ny, nx = y + dy, x + dx
                 if (0 <= ny < h and 0 <= nx < w and 
                     not visited[ny, nx]):
-                    stack.append((ny, nx))
-    
+                    stack.append((ny, nx))  
     return result
-
 def split_and_merge(img, min_size=2, threshold=20):
     print(f"Split and Merge: Recursively splits image into homogeneous regions (min_size={min_size}, threshold={threshold})")
     print("Splits regions that are too heterogeneous, merges similar adjacent regions")
-    
     h, w = img.shape
     result = np.zeros((h, w), dtype=np.uint8)
-    region_id = 1
-    
+    region_id = 1  
     def is_homogeneous(img_region):
         if img_region.size == 0:
             return True
@@ -376,13 +284,11 @@ def split_and_merge(img, min_size=2, threshold=20):
         for pixel in flat_region:
             mean_val += pixel
         mean_val = mean_val / len(flat_region)
-        
         for pixel in flat_region:
             std += (pixel - mean_val) ** 2
         std = math.sqrt(std / len(flat_region))
         
         return std <= threshold
-    
     def split_region(x, y, width, height, region_id_ref):
         if width < min_size or height < min_size:
             mean_val = 0
@@ -392,7 +298,6 @@ def split_and_merge(img, min_size=2, threshold=20):
                     if i < h and j < w:
                         mean_val += img[i, j]
                         pixel_count += 1
-            
             if pixel_count > 0:
                 mean_val = mean_val // pixel_count
                 for i in range(y, y + height):
@@ -400,13 +305,10 @@ def split_and_merge(img, min_size=2, threshold=20):
                         if i < h and j < w:
                             result[i, j] = min(255, mean_val)
             return region_id_ref[0]
-        
         region = img[y:y+height, x:x+width]
-        
         if is_homogeneous(region):
             current_id = region_id_ref[0]
             region_id_ref[0] += 1
-            
             mean_val = 0
             pixel_count = 0
             for i in range(y, y + height):
@@ -414,71 +316,54 @@ def split_and_merge(img, min_size=2, threshold=20):
                     if i < h and j < w:
                         mean_val += img[i, j]
                         pixel_count += 1
-            
             if pixel_count > 0:
                 mean_val = mean_val // pixel_count
                 for i in range(y, y + height):
                     for j in range(x, x + width):
                         if i < h and j < w:
                             result[i, j] = min(255, mean_val)
-            
             return current_id
         else:
-            half_w, half_h = width // 2, height // 2
-            
+            half_w, half_h = width // 2, height // 2           
             if half_w > 0 and half_h > 0:
                 split_region(x, y, half_w, half_h, region_id_ref)
                 split_region(x + half_w, y, width - half_w, half_h, region_id_ref)
                 split_region(x, y + half_h, half_w, height - half_h, region_id_ref)
-                split_region(x + half_w, y + half_h, width - half_w, height - half_h, region_id_ref)
-    
+                split_region(x + half_w, y + half_h, width - half_w, height - half_h, region_id_ref)  
     region_id_ref = [1]  
     split_region(0, 0, w, h, region_id_ref)
-    
-    print("Merging similar adjacent regions...")
     merged = result.copy()
-    
     for i in range(1, h-1):
         for j in range(1, w-1):
             current = merged[i, j]
             right = merged[i, j+1]
-            bottom = merged[i+1, j]
-            
+            bottom = merged[i+1, j]           
             if abs(int(current) - int(right)) <= threshold // 2:
                 avg_val = (int(current) + int(right)) // 2
                 merged[i, j] = avg_val
-                merged[i, j+1] = avg_val
-                
+                merged[i, j+1] = avg_val               
             if abs(int(current) - int(bottom)) <= threshold // 2:
                 avg_val = (int(current) + int(bottom)) // 2
                 merged[i, j] = avg_val
-                merged[i+1, j] = avg_val
-    
+                merged[i+1, j] = avg_val  
     return merged
-
 def roberts_edge_detection(img, thresh=50):
-    print(f"Roberts Edge Detection: Uses 2x2 cross-gradient masks to detect edges (threshold={thresh})")
     h, w = img.shape
-    
     Gx_mask = np.array([[1, 0],
                         [0, -1]])
     Gy_mask = np.array([[0, 1],
                         [-1, 0]])
-    
     Gx = np.zeros_like(img, dtype=int)
     Gy = np.zeros_like(img, dtype=int)
-    
     for i in range(h-1):
         for j in range(w-1):
             region = img[i:i+2, j:j+2]
             Gx[i, j] = np.sum(region * Gx_mask)
             Gy[i, j] = np.sum(region * Gy_mask)
-    
     G = np.zeros_like(img, dtype=float)
     for i in range(h):
         for j in range(w):
             G[i, j] = math.sqrt(Gx[i, j]**2 + Gy[i, j]**2)
-    
     edges = np.zeros_like(img, dtype=np.uint8)
     for i in range(h):
         for j in range(w):
@@ -486,44 +371,35 @@ def roberts_edge_detection(img, thresh=50):
                 edges[i, j] = 255
             else:
                 edges[i, j] = 0
-    
     return edges, Gx, Gy, G.astype(np.uint8)
-
 def histogram_equalization(img):
     h, w = img.shape
     total_pixels = h * w
     L = 256 
-
     hist = np.zeros(L, dtype=int)
     for i in range(h):
         for j in range(w):
             hist[img[i, j]] += 1
-
     cdf = np.zeros(L, dtype=int)
     cdf[0] = hist[0]
     for k in range(1, L):
         cdf[k] = cdf[k-1] + hist[k]
-
     new_values = np.zeros(L, dtype=int)
     for k in range(L):
         new_values[k] = round((cdf[k]) * (L-1))
-
     out = np.zeros_like(img)
     for i in range(h):
         for j in range(w):
             out[i, j] = new_values[img[i, j]]
-
     return out, hist, cdf, new_values
-
-if __name__ == "__main__":
-    
+if __name__ == "__main__":   
     test_img = np.array([
         [52, 55, 61, 59],
         [79, 61, 76, 61],
         [85, 255, 90, 82],
         [59, 70, 85, 60]
     ], dtype=np.uint8)
-    
+
     linear_result = linear_transform(test_img, a=1.5, b=10)
     log_result = log_transform(test_img, c=10) 
     power_result = power_law_transform(test_img, c=1.0, gamma=0.5)
