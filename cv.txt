@@ -516,9 +516,6 @@ def histogram_equalization(img):
     return out, hist, cdf, new_values
 
 if __name__ == "__main__":
-    print("="*60)
-    print("IMAGE PROCESSING OPERATIONS DEMONSTRATION")
-    print("="*60)
     
     test_img = np.array([
         [52, 55, 61, 59],
@@ -527,84 +524,20 @@ if __name__ == "__main__":
         [59, 70, 85, 60]
     ], dtype=np.uint8)
     
-    print("\nOriginal Test Image:")
-    print(test_img)
-    
-    print("\n" + "="*40)
-    print("GRAY LEVEL TRANSFORMATIONS")
-    print("="*40)
-    
     linear_result = linear_transform(test_img, a=1.5, b=10)
-    print("Linear Transform Result:")
-    print(linear_result)
-    
     log_result = log_transform(test_img, c=10) 
-    print("\nLog Transform Result:")
-    print(log_result)
-    
     power_result = power_law_transform(test_img, c=1.0, gamma=0.5)
-    print("\nPower Law Transform Result:")
-    print(power_result)
-    
     negate_result = negate_transform(test_img)
-    print("\nNegate Transform Result:")
-    print(negate_result)
-    
-    print("\n" + "="*40)
-    print("THRESHOLDING OPERATIONS")
-    print("="*40)
-    
     binary_result = binary_threshold(test_img, thresh=70)
-    print("Binary Threshold Result:")
-    print(binary_result)
-    
     otsu_result, otsu_thresh = otsu_threshold(test_img)
-    print(f"\nOtsu Threshold Result (threshold={otsu_thresh}):")
-    print(otsu_result)
-    
     multi_result = multiple_threshold(test_img, thresholds=[60, 80])
-    print("\nMultiple Threshold Result:")
-    print(multi_result)
-    
-    print("\n" + "="*40)
-    print("ZOOM OPERATIONS")
-    print("="*40)
-    
     zoom_zero = zero_order_hold_zoom(test_img, 2.0)
-    print("Zero-Order Hold Zoom (2x):")
-    print(zoom_zero)
-    
     zoom_first = first_order_hold_zoom(test_img, 2.0)
-    print("\nFirst-Order Hold Zoom (2x):")
-    print(zoom_first)
-    
-    print("\n" + "="*40)
-    print("BASIC IMAGE OPERATIONS")
-    print("="*40)
-    
     cropped = crop_image(test_img, 1, 1, 3, 3)
-    print("Cropped Image (1,1) to (3,3):")
-    print(cropped)
-    
     translated = translate_image(test_img, 1, 1)
-    print("\nTranslated Image (1,1):")
-    print(translated)
-    
     rotated = rotate_image(test_img, 90)
-    print("\nRotated Image (90 degrees):")
-    print(rotated)
-    
     h_flipped = flip_horizontal(test_img)
-    print("\nHorizontally Flipped:")
-    print(h_flipped)
-    
     v_flipped = flip_vertical(test_img)
-    print("\nVertically Flipped:")
-    print(v_flipped)
-    
-    print("\n" + "="*40)
-    print("ARITHMETIC & LOGICAL OPERATIONS")
-    print("="*40)
     
     test_img2 = np.array([
         [30, 40, 50, 60],
@@ -613,101 +546,19 @@ if __name__ == "__main__":
         [150, 160, 170, 180]
     ], dtype=np.uint8)
     
-    print("Second Test Image:")
-    print(test_img2)
-    
-    print("\n")
     and_result = img_and(test_img, test_img2)
-    print("AND Result:")
-    print(and_result)
-    
-    print("\n")
     or_result = img_or(test_img, test_img2)
-    print("OR Result:")
-    print(or_result)
-    
-    print("\n")
     xor_result = img_xor(test_img, test_img2)
-    print("XOR Result:")
-    print(xor_result)
-    
-    print("\n")
     add_result = img_add(test_img, test_img2)
-    print("ADD Result:")
-    print(add_result)
-    
-    print("\n")
     sub_result = img_sub(test_img, test_img2)
-    print("SUBTRACT Result:")
-    print(sub_result)
-    
-    print("\n")
     mul_result = img_mul(test_img, test_img2)
-    print("MULTIPLY Result:")
-    print(mul_result)
-    
-    print("\n")
     div_result = img_div(test_img, test_img2)
-    print("DIVIDE Result:")
-    print(div_result)
-    
-    print("\n" + "="*40)
-    print("EDGE DETECTION")
-    print("="*40)
-    
-    print("SOBEL Edge Detection:")
     edges, Gx, Gy, G = sobel_edge_detection(test_img, thresh=100)
-    print("Gradient X:")
-    print(Gx)
-    print("\nGradient Y:")
-    print(Gy)
-    print("\nGradient Magnitude:")
-    print(G)
-    print("\nEdges after thresholding:")
-    print(edges)
-    
-    print("\nROBERTS Edge Detection:")
     roberts_edges, roberts_Gx, roberts_Gy, roberts_G = roberts_edge_detection(test_img, thresh=50)
-    print("Roberts Gradient X:")
-    print(roberts_Gx)
-    print("\nRoberts Gradient Y:")
-    print(roberts_Gy)
-    print("\nRoberts Gradient Magnitude:")
-    print(roberts_G)
-    print("\nRoberts Edges after thresholding:")
-    print(roberts_edges)
-    
-    print("\n" + "="*40)
-    print("REGION GROWING")
-    print("="*40)
-    
     region_grown = region_growing(test_img, seed_x=1, seed_y=1, threshold=15)
-    print("Region Growing Result:")
-    print(region_grown)
-    
-    print("\n" + "="*40)
-    print("SPLIT AND MERGE")
-    print("="*40)
-    
     split_merge_result = split_and_merge(test_img, min_size=1, threshold=30)
-    print("Split and Merge Result:")
-    print(split_merge_result)
-    
-    print("\n" + "="*40)
-    print("HISTOGRAM EQUALIZATION")
-    print("="*40)
-    
     eq_img, hist, cdf, mapping = histogram_equalization(test_img)
-    print("Histogram:")
-    print(hist[:20])  
-    print("\nCDF:")
-    print(cdf[:20]) 
-    print("\nEqualized Image:")
-    print(eq_img)
-    
-    print("\n" + "="*60)
-    print("All operations completed successfully!")
-    print("="*60)
+
     
     """
     # Load two images and convert to grayscale
