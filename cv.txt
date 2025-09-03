@@ -219,34 +219,31 @@ def connected_component_labeling(binary_img):
                 while labels[i, j] != eq_table[labels[i, j]]:
                     labels[i, j] = eq_table[labels[i, j]]
     return labels, eq_table
-def roberts_edge_detection(img, thresh=50):
+def sobel_edge_detection(img, thresh=100):
     h, w = img.shape
-    Gx_mask = np.array([[1, 0],
-                        [0, -1]])
-    Gy_mask = np.array([[0, 1],
-                        [-1, 0]])
+    Kx = np.array([[-1,0,1],
+                   [-2,0,2],
+                   [-1,0,1]])
+    Ky = np.array([[-1,-2,-1],
+                   [0,0,0],
+                   [1,2,1]])
     Gx = np.zeros_like(img, dtype=int)
     Gy = np.zeros_like(img, dtype=int)
-    for i in range(h-1):
-        for j in range(w-1):
-            region = img[i:i+2, j:j+2]
-            Gx[i, j] = np.sum(region * Gx_mask)
-            Gy[i, j] = np.sum(region * Gy_mask)
-    G = np.zeros_like(img, dtype=float)
-    for i in range(h):
-        for j in range(w):
-            G[i, j] = math.sqrt(Gx[i, j]**2 + Gy[i, j]**2)
+    for i in range(1, h-1):
+        for j in range(1, w-1):
+            region = img[i-1:i+2, j-1:j+2]
+            Gx[i,j] = np.sum(region * Kx)
+            Gy[i,j] = np.sum(region * Ky)
+    G = np.sqrt(Gx**2 + Gy**2).astype(np.uint8)
     edges = np.zeros_like(img, dtype=np.uint8)
     for i in range(h):
         for j in range(w):
-            if G[i, j] > thresh:
-                edges[i, j] = 255
+            if G[i,j] > thresh:
+                edges[i,j] = 255
             else:
-                edges[i, j] = 0
-    return edges, Gx, Gy, G.astype(np.uint8)
+                edges[i,j] = 0
+    return edges, Gx, Gy, G
 def region_growing(img, seed_x, seed_y, threshold=10):
-    print(f"Region Growing: Grows region from seed ({seed_x},{seed_y}) with threshold {threshold}")
-    print("Connects pixels with similar intensity values to the growing region")
     h, w = img.shape
     visited = np.zeros((h, w), dtype=bool)
     result = np.zeros((h, w), dtype=np.uint8)
@@ -270,8 +267,6 @@ def region_growing(img, seed_x, seed_y, threshold=10):
                     stack.append((ny, nx))  
     return result
 def split_and_merge(img, min_size=2, threshold=20):
-    print(f"Split and Merge: Recursively splits image into homogeneous regions (min_size={min_size}, threshold={threshold})")
-    print("Splits regions that are too heterogeneous, merges similar adjacent regions")
     h, w = img.shape
     result = np.zeros((h, w), dtype=np.uint8)
     region_id = 1  
@@ -380,10 +375,13 @@ def histogram_equalization(img):
     for i in range(h):
         for j in range(w):
             hist[img[i, j]] += 1
+    pr = np.zeros(L, dtype=float)
+    for k in range(L):
+        pr[k] = hist[k] / total_pixels
     cdf = np.zeros(L, dtype=int)
-    cdf[0] = hist[0]
+    cdf[0] = pr[0]
     for k in range(1, L):
-        cdf[k] = cdf[k-1] + hist[k]
+        cdf[k] = cdf[k-1] + pr[k]
     new_values = np.zeros(L, dtype=int)
     for k in range(L):
         new_values[k] = round((cdf[k]) * (L-1))
