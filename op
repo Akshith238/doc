@@ -1,0 +1,150 @@
+import numpy as np
+import tensorflow as tf
+from tensorflow.keras.models import Sequential
+from tensorflow.keras.layers import Dense
+from tensorflow.keras.optimizers import Adam, RMSprop
+
+# Define the function and its gradients for custom optimizers
+def f(x, y):
+    return x**2 + y**2
+
+def grad_f(x, y):
+    return np.array([2 * x, 2 * y])
+
+# ADAGRAD OPTIMIZER
+print("ADAGRAD OPTIMIZER")
+eta_adagrad = 0.1
+epsilon_adagrad = 1e-8
+x_adagrad = -0.1659
+y_adagrad = 0.4406
+bounds_adagrad = [-1, 1]
+sum_sq_grad_adagrad = np.array([0.0, 0.0])
+iteration_adagrad = 0
+max_iterations_adagrad = 10000
+
+while True:
+    grad_adagrad = grad_f(x_adagrad, y_adagrad)
+    sum_sq_grad_adagrad += grad_adagrad**2
+    adaptive_lr_adagrad = eta_adagrad / (np.sqrt(sum_sq_grad_adagrad) + epsilon_adagrad)
+    x_adagrad -= adaptive_lr_adagrad[0] * grad_adagrad[0]
+    y_adagrad -= adaptive_lr_adagrad[1] * grad_adagrad[1]
+    x_adagrad = np.clip(x_adagrad, bounds_adagrad[0], bounds_adagrad[1])
+    y_adagrad = np.clip(y_adagrad, bounds_adagrad[0], bounds_adagrad[1])
+    iteration_adagrad += 1
+    # print(f"Iteration {iteration_adagrad}: x = {x_adagrad:.8f}, y = {y_adagrad:.8f}, f(x, y) = {f(x_adagrad, y_adagrad):.8f}")
+    if np.linalg.norm(grad_adagrad) < epsilon_adagrad or iteration_adagrad >= max_iterations_adagrad:
+        break
+print(f"Final x: {x_adagrad:.8f}, y: {y_adagrad:.8f}")
+print(f"Function value: {f(x_adagrad, y_adagrad):.8f}")
+print(f"Total Iterations: {iteration_adagrad}\n")
+
+
+# MOMENTUM GRADIENT
+print("MOMENTUM GRADIENT")
+def momentum_gradient_descent(objective, derivative, bounds, n_iter, learning_rate, momentum):
+    np.random.seed(1)
+    solution = bounds[:, 0] + np.random.rand(len(bounds)) * (bounds[:, 1] - bounds[:, 0])
+    change = 0.0
+    for i in range(n_iter):
+        gradient = derivative(solution[0], solution[1])
+        new_change = learning_rate * gradient + momentum * change
+        solution = solution - new_change
+        change = new_change
+        solution_eval = objective(solution[0], solution[1])
+        # print('>%d f(%s) = %.5f' % (i, solution, solution_eval))
+    return [solution, solution_eval]
+
+bounds_momentum = np.asarray([[-1.0, 1.0], [-1.0, 1.0]])
+n_iter_momentum = 30
+learning_rate_momentum = 0.1
+momentum_momentum = 0.3
+best_momentum, score_momentum = momentum_gradient_descent(f, grad_f, bounds_momentum, n_iter_momentum, learning_rate_momentum, momentum_momentum)
+print('Done!')
+print('f(%s) = %f' % (best_momentum, score_momentum))
+print(f"Total Iterations: {n_iter_momentum}\n")
+
+
+# ADAM OPTIMIZER
+print("ADAM OPTIMIZER")
+X_adam = np.array([-1, 0, 1, 2, 3, 4], dtype=float)
+Y_adam = np.array([-3, -1, 1, 3, 5, 7], dtype=float)
+model_adam = Sequential()
+model_adam.add(Dense(1, input_dim=1))
+adam_optimizer = Adam(learning_rate=0.1)
+model_adam.compile(loss='mean_squared_error', optimizer=adam_optimizer)
+model_adam.fit(X_adam, Y_adam, epochs=100, verbose=0)
+predictions_adam = model_adam.predict(X_adam)
+print("Predictions:", predictions_adam.flatten())
+print("Learned weights (w, b):", [layer.get_weights() for layer in model_adam.layers])
+print("\n")
+
+
+# RMSPROP (Root Mean Square Propagation)
+print("RMSPROP OPTIMIZER")
+X_rmsprop = np.array([-1, 0, 1, 2, 3, 4], dtype=float)
+Y_rmsprop = np.array([-3, -1, 1, 3, 5, 7], dtype=float)
+model_rmsprop = Sequential()
+model_rmsprop.add(Dense(1, input_dim=1))
+rmsprop_optimizer = RMSprop(learning_rate=0.1)
+model_rmsprop.compile(loss='mean_squared_error', optimizer=rmsprop_optimizer)
+model_rmsprop.fit(X_rmsprop, Y_rmsprop, epochs=100, verbose=0)
+predictions_rmsprop = model_rmsprop.predict(X_rmsprop)
+print("Predictions:", predictions_rmsprop.flatten())
+print("Learned weights (w, b):", [layer.get_weights() for layer in model_rmsprop.layers])
+print("\n")
+
+
+# STOCHASTIC GRADIENT DESCENT
+print("STOCHASTIC GRADIENT DESCENT")
+eta_sgd = 0.1
+epsilon_sgd = 1e-8
+x_sgd = -0.1659
+y_sgd = 0.4406
+bounds_sgd = [-1, 1]
+iteration_sgd = 0
+max_iterations_sgd = 10000
+
+while True:
+    grad_sgd = grad_f(x_sgd, y_sgd)
+    x_sgd -= eta_sgd * grad_sgd[0]
+    y_sgd -= eta_sgd * grad_sgd[1]
+    x_sgd = np.clip(x_sgd, bounds_sgd[0], bounds_sgd[1])
+    y_sgd = np.clip(y_sgd, bounds_sgd[0], bounds_sgd[1])
+    iteration_sgd += 1
+    # print(f"Iteration {iteration_sgd}: x = {x_sgd:.8f}, y = {y_sgd:.8f}, f(x, y) = {f(x_sgd, y_sgd):.8f}")
+    if np.linalg.norm(grad_sgd) < epsilon_sgd or iteration_sgd >= max_iterations_sgd:
+        break
+print(f"Final x: {x_sgd:.8f}, y: {y_sgd:.8f}")
+print(f"Function value: {f(x_sgd, y_sgd):.8f}")
+print(f"Total Iterations: {iteration_sgd}\n")
+
+
+# NESTEROV ACCELERATED GRADIENT DESCENT
+print("NESTEROV ACCELERATED GRADIENT DESCENT")
+eta_nag = 0.1
+momentum_nag = 0.9
+epsilon_nag = 1e-8
+x_nag = -0.1659
+y_nag = 0.4406
+bounds_nag = [-1, 1]
+v_nag = np.array([0.0, 0.0])
+iteration_nag = 0
+max_iterations_nag = 10000
+
+while True:
+    x_lookahead_nag = x_nag - momentum_nag * v_nag[0]
+    y_lookahead_nag = y_nag - momentum_nag * v_nag[1]
+    grad_lookahead_nag = grad_f(x_lookahead_nag, y_lookahead_nag)
+    v_nag = momentum_nag * v_nag + eta_nag * grad_lookahead_nag
+    x_nag -= v_nag[0]
+    y_nag -= v_nag[1]
+    x_nag = np.clip(x_nag, bounds_nag[0], bounds_nag[1])
+    y_nag = np.clip(y_nag, bounds_nag[0], bounds_nag[1])
+    iteration_nag += 1
+    # print(f"Iteration {iteration_nag}: x = {x_nag:.8f}, y = {y_nag:.8f}, f(x, y) = {f(x_nag, y_nag):.8f}")
+    grad_current_nag = grad_f(x_nag, y_nag)
+    if np.linalg.norm(grad_current_nag) < epsilon_nag or iteration_nag >= max_iterations_nag:
+        break
+print(f"Final x: {x_nag:.8f}, y: {y_nag:.8f}")
+print(f"Function value: {f(x_nag, y_nag):.8f}")
+print(f"Total Iterations: {iteration_nag}\n")
