@@ -10,6 +10,19 @@ from google.colab.patches import cv2_imshow
 #     [10, 10, 10, 10, 10]
 # ], dtype=float)
 
+import cv2
+
+# --- Open an image ---
+img = cv2.imread("input.jpg")   # reads in BGR format
+cv2.imshow("Image", img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
+
+# --- Resize an image ---
+resized = cv2.resize(img, (200, 200))   # resize to 200x200 pixels
+
+# --- Save an image ---
+cv2.imwrite("resized_output.jpg", resized)
 
 img = cv2.imread('CV_Image.jpg', cv2.IMREAD_GRAYSCALE)
 
