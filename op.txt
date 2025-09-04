@@ -148,3 +148,75 @@ while True:
 print(f"Final x: {x_nag:.8f}, y: {y_nag:.8f}")
 print(f"Function value: {f(x_nag, y_nag):.8f}")
 print(f"Total Iterations: {iteration_nag}\n")
+
+#initialisation
+import numpy as np
+
+def xavier(shape): return np.random.randn(*shape)/np.sqrt(shape[0])
+def he(shape): return np.random.randn(*shape)*np.sqrt(2/shape[0])
+
+#ovefitting underfitting
+import numpy as np
+import matplotlib.pyplot as plt
+from sklearn.preprocessing import PolynomialFeatures
+from sklearn.linear_model import LinearRegression
+
+X = np.linspace(0,1,10).reshape(-1,1)
+y = np.sin(2*np.pi*X)+0.1*np.random.randn(10,1)
+
+for deg in [1,9]:
+    poly = PolynomialFeatures(deg)
+    Xp = poly.fit_transform(X)
+    model = LinearRegression().fit(Xp,y)
+    plt.scatter(X,y)
+    plt.plot(X,model.predict(Xp))
+    plt.title(f"Degree {deg}")
+    plt.show()
+#bias variance
+import numpy as np
+from sklearn.linear_model import LinearRegression
+
+X = np.linspace(0,1,20).reshape(-1,1)
+y_true = np.sin(2*np.pi*X)
+
+preds = []
+for _ in range(50):
+    y = y_true+0.1*np.random.randn(*y_true.shape)
+    model = LinearRegression().fit(X,y)
+    preds.append(model.predict(X))
+preds = np.array(preds)
+bias = np.mean(preds,0)-y_true.ravel()
+variance = np.var(preds,0)
+print(np.mean(bias**2),np.mean(variance))
+
+#early stopping
+X = np.random.randn(20,2)
+y = (np.sum(X,axis=1)>0).astype(int).reshape(-1,1)
+
+W = np.random.randn(2,1)
+best_loss = 1e9
+patience = 0
+for epoch in range(1000):
+    o = 1/(1+np.exp(-(X@W)))
+    loss = np.mean((o-y)**2)
+    if loss<best_loss:
+        best_loss=loss;bestW=W.copy();patience=0
+    else:
+        patience+=1
+    if patience>10: break
+    W -= 0.1*X.T@(o-y)
+print(best_loss)
+
+#dropout 
+X = np.random.randn(5,3)
+W = np.random.randn(3,4)
+drop_rate = 0.5
+mask = (np.random.rand(*X.shape)>drop_rate)/(1-drop_rate)
+X_drop = X*mask
+h = X_drop@W
+print(h)
+
+
+
+
+
